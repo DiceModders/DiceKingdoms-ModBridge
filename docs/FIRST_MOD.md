@@ -62,7 +62,8 @@ Delete the generated `Class1.cs`.
 Any of the three repositories has `scripts\link-interop.ps1`. Copy it into your project and run it once:
 
 ```powershell
-.\scripts\link-interop.ps1 "E:\SteamLibrary\steamapps\common\Dice-Kingdoms"
+$game = "<your Dice-Kingdoms folder>"   # the folder that contains BepInEx, e.g. ...\steamapps\common\Dice-Kingdoms (Steam: Properties > Installed Files > Browse)
+.\scripts\link-interop.ps1 $game
 ```
 
 It creates the junction `interop` (add `interop/` to `.gitignore`). If the game updates, BepInEx regenerates the folder and the junction keeps pointing at it.
@@ -127,8 +128,9 @@ Rules of thumb:
 ## 4. Build and install
 
 ```powershell
+$game = "<your Dice-Kingdoms folder>"   # the folder that contains BepInEx, e.g. ...\steamapps\common\Dice-Kingdoms (Steam: Properties > Installed Files > Browse)
 dotnet build -c Release
-Copy-Item bin\Release\net6.0\MyName.MyMod.dll "E:\SteamLibrary\steamapps\common\Dice-Kingdoms\BepInEx\plugins" -Force
+Copy-Item bin\Release\net6.0\MyName.MyMod.dll "$game\BepInEx\plugins" -Force
 ```
 
 Start the game. Check `BepInEx\LogOutput.log` for `Loaded plugin My Mod`. You should see the hammer button in the top bar; in a lobby the host gets a "Rules > My Mod > Meteors" row
