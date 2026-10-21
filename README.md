@@ -85,9 +85,10 @@ Requirements: .NET SDK 6 or newer, the game installed, UiKit and ModCore built (
 clone the three repos side by side, or change the `HintPath`s in `ModBridge.csproj`).
 
 ```powershell
-.\scripts\link-interop.ps1 "E:\SteamLibrary\steamapps\common\Dice-Kingdoms"
+$game = "<your Dice-Kingdoms folder>"   # the folder that contains BepInEx, e.g. ...\steamapps\common\Dice-Kingdoms (Steam: Properties > Installed Files > Browse)
+.\scripts\link-interop.ps1 $game
 dotnet build -c Release --no-incremental
-Copy-Item bin\Release\net6.0\DiceModders.ModBridge.dll "E:\SteamLibrary\steamapps\common\Dice-Kingdoms\BepInEx\plugins" -Force
+Copy-Item bin\Release\net6.0\DiceModders.ModBridge.dll "$game\BepInEx\plugins" -Force
 ```
 
 ## Troubleshooting
