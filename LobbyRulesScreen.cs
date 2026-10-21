@@ -44,8 +44,10 @@ internal static class LobbyRulesScreen {
 				s.Toggle(toggle.Title, () => toggle.Live, v => toggle.TrySet(v), options);
 				break;
 			case LobbyRule<int> number:
-				s.Stepper(number.Title, () => number.Live.ToString(),
-					d => number.TrySet(Math.Clamp(number.Live + d * number.Step, number.Min, number.Max)), options);
+				// the game's own slider; a rule with a step snaps to it
+				s.Slider(number.Title, number.Min, number.Max, () => number.Live,
+					v => number.TrySet(Math.Clamp((int)Math.Round(v / number.Step) * number.Step, number.Min, number.Max)),
+					wholeNumbers: true, format: "0", options: options);
 				break;
 			default:
 				Plugin.Log.LogWarning($"lobby rule '{rule.Key}' has a type this plugin cannot show");
