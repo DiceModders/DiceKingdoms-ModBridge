@@ -1,6 +1,6 @@
 # ModBridge
 
-Connects [ModCore](https://github.com/superartyom/DiceKingdoms-ModCore) (game and networking logic) with [UiKit](https://github.com/superartyom/DiceKingdoms-UiKit)
+Connects [ModCore](https://github.com/DiceModders/DiceKingdoms-ModCore) (game and networking logic) with [UiKit](https://github.com/DiceModders/UIKit_Another_Version)
 (native interface) for Dice Kingdoms mods (BepInEx 6 IL2CPP).
 
 The three repositories are three separate libraries:
