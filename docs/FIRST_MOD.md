@@ -87,19 +87,26 @@ namespace MyName.MyMod;
 [BepInDependency("DiceModders.ModCore")]
 public class Plugin : BasePlugin {
     public static LobbyRule<bool> Meteors;
-    private WindowHandle _window;
+    private UiScope _ui;
+    private UiWindow _window;
 
     public override void Load() {
         // (a) A lobby rule: the host sets it in the lobby, everyone follows, frozen when the match starts.
         Meteors = Core.Lobby.Rules.Toggle("myname.meteors", "Meteors", true, "Disasters hit the islands.");
 
-        // (b) A button in the top bar (icon = name of a game sprite, see step 6).
-        Ui.TopBar.Add("myname.panel", "hammer", TogglePanel, "My Mod");
+        // (b) One UiKit scope per mod. It owns everything you add and removes it when disposed.
+        _ui = Ui.CreateScope("myname.mymod");
 
-        // (c) Rows in Settings > Game.
-        Ui.Settings.Add(SettingsTab.Game, "My Mod", s => {
-            s.Toggle("Show hints", () => ShowHints, v => ShowHints = v);
-            s.Info("Changes apply immediately.");
+        // (c) Everything that touches the game's UI is registered from WhenReady (runs once, when the UI exists).
+        _ui.WhenReady(ui => {
+            // A button in the top bar (icon = name of a game sprite, see step 6).
+            ui.Native.TopBar.AddIconButton("hammer", "My Mod", () => TogglePanel(ui));
+
+            // A tab in Settings.
+            ui.Native.Settings.AddTab("myname.mymod", "My Mod", tab => {
+                tab.AddToggle("Show hints", true, v => ShowHints = v);
+                tab.AddInfo("Changes apply immediately.");
+            });
         });
 
         Core.Lobby.MatchStarted += () => Log.LogInfo($"match started, meteors={Meteors.Value}");
@@ -107,12 +114,11 @@ public class Plugin : BasePlugin {
 
     public static bool ShowHints = true;
 
-    private void TogglePanel() {
+    private void TogglePanel(UiScope ui) {
         if (_window != null) { _window.Close(); _window = null; return; }
-        _window = Ui.Window(w => {
+        _window = ui.Custom.Window(w => {
             w.Size(320, 160).Draggable().Closable().Title("My Mod");
-            var label = w.Body.Label($"Meteors: {Meteors.Value}");
-            w.Body.Button("Refresh", () => label.SetText($"Meteors: {Meteors.Value}"));
+            w.Body.Paragraph($"Meteors: {Meteors.Value}");
         });
     }
 }
@@ -120,8 +126,9 @@ public class Plugin : BasePlugin {
 
 Rules of thumb:
 
-- Registration (`TopBar.Add`, `Settings.Add`, `Rules.Toggle`...) is fine in `Load()`: UiKit adds buttons and rows when the screens appear.
-- **Windows** (`Ui.Window`) need the game's UI to exist. Create them from a click handler, not from `Load()`.
+- Create exactly one scope in `Load()` and register UI from `scope.WhenReady`. Native additions (top bar, settings, scoreboard, rules) attach themselves when their screen appears.
+- **Windows** (`ui.Custom.Window`) need the game's UI to exist. Create them from a click handler or `WhenReady`, not directly from `Load()`.
+- Dispose the scope (`_ui.Dispose()`) if your mod can be unloaded; it removes everything it owns.
 - Prefix every id/key with your name (`myname.`). Ids are shared by all mods.
 - Read a rule's `.Value` where you use it; do not copy it into a field.
 
@@ -160,8 +167,7 @@ Anything that changes *what happens in the match* must be a **lobby rule** (so e
 |---|---|
 | What is the game class / method for X? | dnSpy / ILSpy on `BepInEx\interop\Assembly-CSharp.dll` (names are kept, bodies are stubs). |
 | What does a method actually do? | Ghidra on `GameAssembly.dll` (search the function by its interop name) or the structure notes in the Modding Wiki. |
-| What is the sprite name for an icon? | Set `[Debug] DumpSpriteNames = true` in `BepInEx\config\DiceModders.UiKit.cfg`, start the game, open `BepInEx\uikit-sprites.txt`. In code: `Assets.SpriteNames("filter")`. |
-| Is my invisible hotspot where I think? | `[Debug] ShowInvisible = true` in the UiKit config. |
+| What is the sprite name for an icon? | In code: `ui.Custom.Theme.SpriteNames("filter")` (see the UiKit README, "Theme"). |
 | What does the game wiki say? | [DiceKingdoms-Modding-Wiki](https://github.com/DiceModders/DiceKingdoms-Modding-Wiki). |
 
 ## 7. Publishing
