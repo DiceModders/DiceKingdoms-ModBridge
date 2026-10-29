@@ -71,7 +71,7 @@ public class MyModPlugin : BasePlugin {
 | `CivilizationEntries.cs` | Mirrors `ModCore.Civilizations.All / Added / Removed` into `scope.Native.Rules.AddCivilization(id, name)` (and disposes the handle on `Remove`). |
 
 Both files are short on purpose: the logic lives in the libraries, ModBridge only wires them together. UiKit is event-driven: ModBridge subscribes to ModCore's events
-(`Lobby.Changed`, `MatchStarted`, `MatchEnded`, `Rules.Registered`, per-rule changes, `Civilizations.Added/Removed`) and pushes the new state into the handles, so the rows follow the lobby live
+(`Lobby.Changed`, `Match.Started`, `Match.Ended`, `Rules.Registered`, per-rule changes, `Civilizations.Added/Removed`) and pushes the new state into the handles, so the rows follow the lobby live
 (host changes a rule, a member joins, the match starts and the rows turn read-only). Nothing is polled.
 
 ### Adding a new bridge

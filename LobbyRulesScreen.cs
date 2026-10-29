@@ -98,8 +98,8 @@ internal static class LobbyRulesScreen {
 		if (_subscribedToLobby) return;
 		_subscribedToLobby = true;
 		Core.Lobby.Changed += Refresh;
-		Core.Lobby.MatchStarted += Refresh;
-		Core.Lobby.MatchEnded += Refresh;
+		Core.Match.Started += Refresh;
+		Core.Match.Ended += Refresh;
 	}
 
 	private static void Refresh() {

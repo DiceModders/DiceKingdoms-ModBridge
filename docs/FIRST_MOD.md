@@ -109,7 +109,7 @@ public class Plugin : BasePlugin {
             });
         });
 
-        Core.Lobby.MatchStarted += () => Log.LogInfo($"match started, meteors={Meteors.Value}");
+        Core.Match.Started += () => Log.LogInfo($"match started, meteors={Meteors.Value}");
     }
 
     public static bool ShowHints = true;
