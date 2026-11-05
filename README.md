@@ -83,6 +83,10 @@ If a future feature of ModCore needs a screen (or a UiKit widget needs game data
 3. Call `Install(scope)` from the `WhenReady` callback in `Plugin.Load()`.
 4. Document it in this README.
 
+## Documentation
+
+ModCore, UiKit and ModBridge with examples: the *Modding Libraries* section of the [DiceModders wiki](https://dicemodders.github.io/DiceKingdoms-Modding-Wiki/).
+
 ## Build from source
 
 Requirements: .NET SDK 6 or newer, the game installed, UiKit and ModCore built (this project references their release DLLs: `..\UiKit\bin\Release\net6.0\DiceModders.UiKit.dll` and `..\ModCore\bin\Release\net6.0\`;

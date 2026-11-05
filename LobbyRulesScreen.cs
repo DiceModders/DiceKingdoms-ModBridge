@@ -26,6 +26,7 @@ internal static class LobbyRulesScreen {
 		// the block is added when the first rule exists (a block without rows would only show an empty "Rules" header)
 		if (Core.Lobby.Rules.All.Count > 0) Rebuild();
 		Core.Lobby.Rules.Registered += _ => Rebuild();
+		Core.Lobby.Groups.Changed += () => { if (Core.Lobby.Rules.All.Count > 0) Rebuild(); };   // a rule moved under a heading
 	}
 
 	private static void Rebuild() {
@@ -36,12 +37,23 @@ internal static class LobbyRulesScreen {
 		_block = _scope.Native.Settings.AddBlock("modbridge.lobby.rules", SettingsPage.Lobby, "Rules", 1000);
 		if (_block == null) return;
 
-		var groups = Core.Lobby.Rules.All.GroupBy(r => r.ModId).ToList();
-		foreach (var group in groups) {
+		// rules without a heading: per mod, always open
+		foreach (var group in Core.Lobby.Rules.All.Where(r => r.Group == null).GroupBy(r => r.ModId)) {
 			var rules = group.ToList();
 			var header = _block.AddHeader(rules[0].ModName);
 			if (header != null) Updaters.Add(() => header.SetVisible(rules.Any(r => r.Visible)));
-			foreach (var rule in rules) AddRule(rule);
+			foreach (var rule in rules) AddRule(rule, null);
+		}
+
+		// headings (one per civilization, or a mod's own): a button shows and hides each, so a long list stays short
+		foreach (var heading in Core.Lobby.Groups.All) {
+			var rules = heading.Rules;
+			if (rules.Count == 0) continue;
+			var h = heading;
+			// rows are made once and only shown or hidden: the button's own row is never rebuilt from inside its click
+			var row = _block.AddButton(h.Title, "Show / hide", () => { Open[h.Key] = !IsOpen(h); Refresh(); });
+			if (row != null) Updaters.Add(() => row.SetVisible(rules.Any(r => r.Visible)));
+			foreach (var rule in rules) AddRule(rule, h);
 		}
 
 		var warnings = _block.AddInfo(string.Empty);
@@ -51,11 +63,15 @@ internal static class LobbyRulesScreen {
 		Refresh();
 	}
 
-	private static void AddRule(ILobbyRule rule) {
+	// which headings the player opened (kept while the game runs); a heading starts as its StartsCollapsed says
+	private static readonly Dictionary<string, bool> Open = new();
+	private static bool IsOpen(LobbyGroup g) => Open.TryGetValue(g.Key, out bool open) ? open : !g.StartsCollapsed;
+
+	private static void AddRule(ILobbyRule rule, LobbyGroup heading) {
 		SettingsRowHandle row;
 		switch (rule) {
 			case LobbyRule<bool> toggle:
-				row = _block.AddToggle(toggle.Title, toggle.Live, v => {
+				row = _block.AddToggle(Label(toggle, heading), toggle.Live, v => {
 					if (_refreshing) return;
 					toggle.TrySet(v);
 					Refresh();   // snap back when the change was refused
@@ -65,7 +81,7 @@ internal static class LobbyRulesScreen {
 				break;
 			case LobbyRule<int> number:
 				// the game's own slider; a rule with a step snaps to it
-				row = _block.AddSlider(number.Title, number.Min, number.Max, number.Live, v => {
+				row = _block.AddSlider(Label(number, heading), number.Min, number.Max, number.Live, v => {
 					if (_refreshing) return;
 					number.TrySet(Math.Clamp((int)Math.Round(v / number.Step) * number.Step, number.Min, number.Max));
 					Refresh();
@@ -77,13 +93,17 @@ internal static class LobbyRulesScreen {
 				Plugin.Log.LogWarning($"lobby rule '{rule.Key}' has a type this plugin cannot show");
 				return;
 		}
-		if (row != null) Updaters.Add(() => row.SetEnabled(rule.Editable).SetVisible(rule.Visible));
+		bool Shown() => rule.Visible && (heading == null || IsOpen(heading));
+		if (row != null) Updaters.Add(() => row.SetEnabled(rule.Editable).SetVisible(Shown()));
 
 		if (!string.IsNullOrWhiteSpace(rule.Description)) {
 			var info = _block.AddInfo(rule.Description);
-			if (info != null) Updaters.Add(() => info.SetVisible(rule.Visible));
+			if (info != null) Updaters.Add(() => info.SetVisible(Shown()));
 		}
 	}
+
+	/// <summary>Under a heading the rows of several mods mix, so each says which mod it belongs to.</summary>
+	private static string Label(ILobbyRule rule, LobbyGroup heading) => heading == null ? rule.Title : rule.Title + " (" + rule.ModName + ")";
 
 	private static void Subscribe(ILobbyRule rule) {
 		// each rule keeps one subscription for the life of the game, even when the block is rebuilt
