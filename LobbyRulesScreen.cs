@@ -79,16 +79,28 @@ internal static class LobbyRulesScreen {
 				if (row != null) Updaters.Add(() => row.SetValue(toggle.Live));
 				Subscribe(toggle);
 				break;
+			case LobbyRule<int> choice when choice.Choices != null:
+				// a few named values: the game's own drop-down
+				row = _block.AddDropdown(Label(choice, heading), choice.Choices, choice.Live, i => {
+					if (_refreshing) return;
+					choice.TrySet(i);
+					Refresh();
+				});
+				if (row != null) Updaters.Add(() => row.SetValue(choice.Live));
+				Subscribe(choice);
+				break;
 			case LobbyRule<int> number:
 				// the game's own slider; a rule with a step snaps to it
 				row = _block.AddSlider(Label(number, heading), number.Min, number.Max, number.Live, v => {
 					if (_refreshing) return;
-					number.TrySet(Math.Clamp((int)Math.Round(v / number.Step) * number.Step, number.Min, number.Max));
+					number.TrySet(Math.Clamp(number.Min + (int)Math.Round((v - number.Min) / number.Step) * number.Step, number.Min, number.Max));   // steps counted from Min (49, 51, 53 ... for a step of 2)
 					Refresh();
 				}, "0", true);
 				if (row != null) Updaters.Add(() => row.SetValue((float)number.Live));
 				Subscribe(number);
 				break;
+			case LobbyRule<string>:
+				return;   // text rules carry data a mod's own window edits: no row here
 			default:
 				Plugin.Log.LogWarning($"lobby rule '{rule.Key}' has a type this plugin cannot show");
 				return;
@@ -103,7 +115,8 @@ internal static class LobbyRulesScreen {
 	}
 
 	/// <summary>Under a heading the rows of several mods mix, so each says which mod it belongs to.</summary>
-	private static string Label(ILobbyRule rule, LobbyGroup heading) => heading == null ? rule.Title : rule.Title + " (" + rule.ModName + ")";
+	private static string Label(ILobbyRule rule, LobbyGroup heading) =>
+		heading == null || heading.Rules.All(r => r.ModId == rule.ModId) ? rule.Title : rule.Title + " (" + rule.ModName + ")";
 
 	private static void Subscribe(ILobbyRule rule) {
 		// each rule keeps one subscription for the life of the game, even when the block is rebuilt
