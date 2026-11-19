@@ -20,13 +20,14 @@ internal static class HotkeysScreen {
 		_scope = scope;
 		if (Core.Hotkeys.All.Count > 0) Rebuild();
 		Core.Hotkeys.Added += _ => Rebuild();
+		Core.Texts.LanguageChanged += () => { if (_block != null) Rebuild(); };   // the key names and headers in the new language
 		Core.Hotkeys.Changed += h => { if (Rows.TryGetValue(h, out var row)) row.SetText(Caption(h)); _clashes?.SetText(ClashText()); };
 	}
 
 	private static void Rebuild() {
 		_block?.Dispose();
 		Rows.Clear();
-		_block = _scope.Native.Settings.AddBlock("modbridge.hotkeys", SettingsPage.Input, "Mod keys", 1000);
+		_block = _scope.Native.Settings.AddBlock("modbridge.hotkeys", SettingsPage.Input, Tx.T("hotkeys.block"), 1000);
 		if (_block == null) return;
 		string mod = null;
 		foreach (var h in Core.Hotkeys.All) {
@@ -39,7 +40,7 @@ internal static class HotkeysScreen {
 			});
 			if (row != null) Rows[h] = row;
 		}
-		_block.AddButton("All mod keys", "Default", () => { foreach (var h in Core.Hotkeys.All) h.Reset(); });
+		_block.AddButton(Tx.T("hotkeys.all"), Tx.T("hotkeys.default"), () => { foreach (var h in Core.Hotkeys.All) h.Reset(); });
 		_clashes = _block.AddInfo(ClashText());
 	}
 
@@ -50,9 +51,9 @@ internal static class HotkeysScreen {
 		var lines = new List<string>();
 		foreach (var h in Core.Hotkeys.All) {
 			var c = h.Clashes();
-			if (c.Count > 0) lines.Add(h.Keys + " (" + h.Title + ") is also used by " + string.Join(", ", c));
+			if (c.Count > 0) lines.Add(Tx.T("hotkeys.clash", h.Keys, h.Title, string.Join(", ", c)));
 		}
-		return lines.Count == 0 ? "No mod key shares a key with another key." : string.Join("\n", lines);
+		return lines.Count == 0 ? Tx.T("hotkeys.noClash") : string.Join("\n", lines);
 	}
 
 	private static string Caption(Hotkey h) => string.IsNullOrEmpty(h.Keys) ? "-" : h.Keys;

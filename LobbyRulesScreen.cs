@@ -27,6 +27,7 @@ internal static class LobbyRulesScreen {
 		if (Core.Lobby.Rules.All.Count > 0) Rebuild();
 		Core.Lobby.Rules.Registered += _ => Rebuild();
 		Core.Lobby.Groups.Changed += () => { if (Core.Lobby.Rules.All.Count > 0) Rebuild(); };   // a rule moved under a heading
+		Core.Texts.LanguageChanged += () => { if (_block != null) Rebuild(); };   // UiKit rows keep the text they were made with
 	}
 
 	private static void Rebuild() {
@@ -34,7 +35,7 @@ internal static class LobbyRulesScreen {
 		_block = null;
 		Updaters.Clear();
 
-		_block = _scope.Native.Settings.AddBlock("modbridge.lobby.rules", SettingsPage.Lobby, "Rules", 1000);
+		_block = _scope.Native.Settings.AddBlock("modbridge.lobby.rules", SettingsPage.Lobby, Tx.T("rules.block"), 1000);
 		if (_block == null) return;
 
 		// rules without a heading: per mod, always open
@@ -51,7 +52,7 @@ internal static class LobbyRulesScreen {
 			if (rules.Count == 0) continue;
 			var h = heading;
 			// rows are made once and only shown or hidden: the button's own row is never rebuilt from inside its click
-			var row = _block.AddButton(h.Title, "Show / hide", () => { Open[h.Key] = !IsOpen(h); Refresh(); });
+			var row = _block.AddButton(h.Title, Tx.T("rules.showHide"), () => { Open[h.Key] = !IsOpen(h); Refresh(); });
 			if (row != null) Updaters.Add(() => row.SetVisible(rules.Any(r => r.Visible)));
 			foreach (var rule in rules) AddRule(rule, h);
 		}

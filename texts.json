@@ -1,0 +1,12 @@
+{
+  // Texts of ModBridge: English is needed, other languages fall back to it. Languages: en, de, fr, ru, uk, zh-CN.
+  // A file <DllName>.texts.json next to the DLL wins line by line, so players can fix or add texts without rebuilding.
+  // rule.<key>.title / .description / .choice.<n> and group.<key>.title translate lobby rules and headings (ModCore).
+  "hotkeys.block": { "en": "Mod keys", "de": "Mod-Tasten", "fr": "Touches des mods", "ru": "Клавиши модов", "uk": "Клавіші модів", "zh-CN": "模组按键" },
+  "hotkeys.all": { "en": "All mod keys", "de": "Alle Mod-Tasten", "fr": "Toutes les touches des mods", "ru": "Все клавиши модов", "uk": "Усі клавіші модів", "zh-CN": "所有模组按键" },
+  "hotkeys.default": { "en": "Default", "de": "Standard", "fr": "Par défaut", "ru": "По умолчанию", "uk": "Типово", "zh-CN": "默认" },
+  "hotkeys.noClash": { "en": "No mod key shares a key with another key.", "de": "Keine Mod-Taste teilt sich eine Taste mit einer anderen.", "fr": "Aucune touche de mod n'est partagée avec une autre touche.", "ru": "Ни одна клавиша мода не совпадает с другой клавишей.", "uk": "Жодна клавіша мода не збігається з іншою клавішею.", "zh-CN": "没有模组按键与其他按键冲突。" },
+  "hotkeys.clash": { "en": "{0} ({1}) is also used by {2}", "de": "{0} ({1}) wird auch von {2} benutzt", "fr": "{0} ({1}) est aussi utilisée par {2}", "ru": "{0} ({1}) также используется: {2}", "uk": "{0} ({1}) також використовується: {2}", "zh-CN": "{0}（{1}）也被 {2} 使用" },
+  "rules.block": { "en": "Rules", "de": "Regeln", "fr": "Règles", "ru": "Правила", "uk": "Правила", "zh-CN": "规则" },
+  "rules.showHide": { "en": "Show / hide", "de": "Zeigen / verbergen", "fr": "Afficher / masquer", "ru": "Показать / скрыть", "uk": "Показати / сховати", "zh-CN": "显示 / 隐藏" }
+}

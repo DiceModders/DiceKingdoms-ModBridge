@@ -17,6 +17,7 @@ public class Plugin : BasePlugin {
 
 	public override void Load() {
 		Log = base.Log;
+		Tx.Load();   // texts.json in the game's language (ModCore)
 		var scope = UiKit.UiKit.CreateScope("DiceModders.ModBridge");
 		if (scope == null) {
 			Log.LogError("UiKit is not available; the lobby rules and civilization entries will not be shown");

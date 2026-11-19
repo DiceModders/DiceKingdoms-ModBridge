@@ -16,11 +16,12 @@ internal static class CivilizationEntries {
 		foreach (var civ in Core.Civilizations.All) Add(civ);
 		Core.Civilizations.Added += Add;
 		Core.Civilizations.Removed += Remove;
+		Core.Texts.LanguageChanged += () => { foreach (var civ in Core.Civilizations.All) Add(civ); };   // the names in the new language
 	}
 
 	private static void Add(ModCivilization civ) {
 		if (Entries.Remove(civ.Id, out var old)) old.Dispose();
-		var entry = _scope.Native.Rules.AddCivilization(civ.Id, civ.Name);
+		var entry = _scope.Native.Rules.AddCivilization(civ.Id, civ.DisplayName);
 		if (entry != null) Entries[civ.Id] = entry;
 	}
 
