@@ -15,7 +15,10 @@ ModBridge is the only place where "data from ModCore" meets "screens from UiKit"
 
 - **Lobby rules** - every rule registered with `ModCore.Lobby.Rules` gets a row in the Settings box of the lobby screen (section "Rules", grouped per mod).
   The host edits the rows before the match, everybody else sees the host's value read-only. A rule's `visible` callback shows or hides its row, and a mod whose rules are
-  all hidden shows no header. Under the rules the section lists `ModCore.Lobby.Compatibility.Warnings` ("<name> does not have <mod>, this rule will be off for everyone in the match.").
+  all hidden shows no header. Rules under a heading (`ModCore.Lobby.Groups`, one per civilization or a mod's own) keep the list short: the heading's first rule, when it
+  is an on/off tick, is its switch and gets a row in the list; the other rules get rows too when there is only one, and a "<heading>: settings / Open" row that opens
+  them in their own window when there are two or more. Under the rules the section lists `ModCore.Lobby.Compatibility.Warnings` ("<name> does not have <mod>, this rule
+  will be off for everyone in the match.").
 - **Civilizations** - every civilization registered with `ModCore.Civilizations.Add` gets an entry in the civilization drop-down of the Rules screen (UiKit only draws the entry; ModCore owns the id, tech tree and sync).
 
 Mods that use ModCore do **not** depend on ModBridge: without it their rules still work, they just have no rows to edit them. List it as an *optional* dependency in your

@@ -24,6 +24,7 @@ public class Plugin : BasePlugin {
 			return;
 		}
 		scope.WhenReady(s => {
+			GroupWindow.Install(s);
 			LobbyRulesScreen.Install(s);
 			CivilizationEntries.Install(s);
 			HotkeysScreen.Install(s);

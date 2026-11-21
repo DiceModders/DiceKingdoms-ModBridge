@@ -8,5 +8,9 @@
   "hotkeys.noClash": { "en": "No mod key shares a key with another key.", "de": "Keine Mod-Taste teilt sich eine Taste mit einer anderen.", "fr": "Aucune touche de mod n'est partagée avec une autre touche.", "ru": "Ни одна клавиша мода не совпадает с другой клавишей.", "uk": "Жодна клавіша мода не збігається з іншою клавішею.", "zh-CN": "没有模组按键与其他按键冲突。" },
   "hotkeys.clash": { "en": "{0} ({1}) is also used by {2}", "de": "{0} ({1}) wird auch von {2} benutzt", "fr": "{0} ({1}) est aussi utilisée par {2}", "ru": "{0} ({1}) также используется: {2}", "uk": "{0} ({1}) також використовується: {2}", "zh-CN": "{0}（{1}）也被 {2} 使用" },
   "rules.block": { "en": "Rules", "de": "Regeln", "fr": "Règles", "ru": "Правила", "uk": "Правила", "zh-CN": "规则" },
-  "rules.showHide": { "en": "Show / hide", "de": "Zeigen / verbergen", "fr": "Afficher / masquer", "ru": "Показать / скрыть", "uk": "Показати / сховати", "zh-CN": "显示 / 隐藏" }
+  "rules.groupSettings": { "en": "{0}: settings", "de": "{0}: Einstellungen", "fr": "{0} : réglages", "ru": "{0}: настройки", "uk": "{0}: налаштування", "zh-CN": "{0}：设置" },
+  "rules.open": { "en": "Open", "de": "Öffnen", "fr": "Ouvrir", "ru": "Открыть", "uk": "Відкрити", "zh-CN": "打开" },
+  "rules.default": { "en": "Default", "de": "Standard", "fr": "Par défaut", "ru": "По умолчанию", "uk": "Типово", "zh-CN": "默认" },
+  "rules.hostOnly": { "en": "Only the host can change these.", "de": "Nur der Host kann diese ändern.", "fr": "Seul l'hôte peut les modifier.", "ru": "Изменять их может только хост.", "uk": "Змінювати їх може лише хост.", "zh-CN": "只有房主可以更改这些设置。" },
+  "rules.nothingNow": { "en": "Nothing to set right now.", "de": "Im Moment gibt es hier nichts einzustellen.", "fr": "Rien à régler pour l'instant.", "ru": "Сейчас здесь нечего настраивать.", "uk": "Зараз тут нічого налаштовувати.", "zh-CN": "目前没有可设置的内容。" }
 }

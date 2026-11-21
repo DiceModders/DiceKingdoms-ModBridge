@@ -11,6 +11,8 @@ namespace DiceModders.ModBridge;
 /// <summary>
 /// The "Rules" block of the Settings > Lobby tab: one row per ModCore lobby rule, grouped per mod, editable for the host only, plus the "may desync" warning.
 /// A row is shown or hidden by the rule's own <c>Visible</c>; a mod whose rules are all hidden shows no header either.
+/// Rules under a heading (a civilization's or a mod's own group) stay short: the heading's on/off switch (its first rule, when that is a tick) is a row
+/// here, and its other rules too when there is only one; two or more open in the heading's own window (<see cref="GroupWindow"/>, like the game values).
 /// UiKit rows keep the value they were given, so every ModCore event that can change a row ends in <see cref="Refresh"/>.
 /// </summary>
 internal static class LobbyRulesScreen {
@@ -34,6 +36,7 @@ internal static class LobbyRulesScreen {
 		_block?.Dispose();
 		_block = null;
 		Updaters.Clear();
+		GroupWindow.Close();   // its rows were made with the old rules and texts
 
 		_block = _scope.Native.Settings.AddBlock("modbridge.lobby.rules", SettingsPage.Lobby, Tx.T("rules.block"), 1000);
 		if (_block == null) return;
@@ -46,15 +49,18 @@ internal static class LobbyRulesScreen {
 			foreach (var rule in rules) AddRule(rule, null);
 		}
 
-		// headings (one per civilization, or a mod's own): a button shows and hides each, so a long list stays short
+		// headings (one per civilization, or a mod's own): the on/off tick right here, the other rules here when there is one, else behind one button
 		foreach (var heading in Core.Lobby.Groups.All) {
-			var rules = heading.Rules;
-			if (rules.Count == 0) continue;
 			var h = heading;
-			// rows are made once and only shown or hidden: the button's own row is never rebuilt from inside its click
-			var row = _block.AddButton(h.Title, Tx.T("rules.showHide"), () => { Open[h.Key] = !IsOpen(h); Refresh(); });
-			if (row != null) Updaters.Add(() => row.SetVisible(rules.Any(r => r.Visible)));
-			foreach (var rule in rules) AddRule(rule, h);
+			var rules = h.Rules.Where(CanShow).ToList();
+			if (rules.Count == 0) continue;
+			var others = Others(rules);
+			if (others.Count < rules.Count) AddRule(rules[0], h);   // the heading's switch
+			if (others.Count == 1) AddRule(others[0], h);
+			else if (others.Count > 1) {
+				var row = _block.AddButton(Tx.T("rules.groupSettings", h.Title), Tx.T("rules.open"), () => GroupWindow.Toggle(h));
+				if (row != null) Updaters.Add(() => row.SetVisible(others.Any(r => r.Visible)));
+			}
 		}
 
 		var warnings = _block.AddInfo(string.Empty);
@@ -64,9 +70,11 @@ internal static class LobbyRulesScreen {
 		Refresh();
 	}
 
-	// which headings the player opened (kept while the game runs); a heading starts as its StartsCollapsed says
-	private static readonly Dictionary<string, bool> Open = new();
-	private static bool IsOpen(LobbyGroup g) => Open.TryGetValue(g.Key, out bool open) ? open : !g.StartsCollapsed;
+	/// <summary>The rules this screen has rows for (text rules carry data a mod's own window edits).</summary>
+	internal static bool CanShow(ILobbyRule rule) => rule is LobbyRule<bool> || rule is LobbyRule<int>;
+
+	/// <summary>A heading's rules without its on/off switch: the first rule, when it is a tick, is the heading's switch.</summary>
+	internal static List<ILobbyRule> Others(List<ILobbyRule> rules) => rules.Count > 0 && rules[0] is LobbyRule<bool> ? rules.Skip(1).ToList() : rules;
 
 	private static void AddRule(ILobbyRule rule, LobbyGroup heading) {
 		SettingsRowHandle row;
@@ -106,20 +114,29 @@ internal static class LobbyRulesScreen {
 				Plugin.Log.LogWarning($"lobby rule '{rule.Key}' has a type this plugin cannot show");
 				return;
 		}
-		bool Shown() => rule.Visible && (heading == null || IsOpen(heading));
-		if (row != null) Updaters.Add(() => row.SetEnabled(rule.Editable).SetVisible(Shown()));
+		if (row != null) Updaters.Add(() => row.SetEnabled(rule.Editable).SetVisible(rule.Visible));
 
 		if (!string.IsNullOrWhiteSpace(rule.Description)) {
 			var info = _block.AddInfo(rule.Description);
-			if (info != null) Updaters.Add(() => info.SetVisible(Shown()));
+			if (info != null) Updaters.Add(() => info.SetVisible(rule.Visible));
 		}
 	}
 
-	/// <summary>Under a heading the rows of several mods mix, so each says which mod it belongs to.</summary>
-	private static string Label(ILobbyRule rule, LobbyGroup heading) =>
-		heading == null || heading.Rules.All(r => r.ModId == rule.ModId) ? rule.Title : rule.Title + " (" + rule.ModName + ")";
+	/// <summary>
+	/// A row under a heading says which heading it belongs to (no heading row above it), unless its title is the heading's; where the rules of several
+	/// mods mix under one heading, it also says which mod it belongs to.
+	/// </summary>
+	internal static string Label(ILobbyRule rule, LobbyGroup heading) {
+		if (heading == null) return rule.Title;
+		string title = string.Equals(rule.Title, heading.Title, StringComparison.OrdinalIgnoreCase) ? rule.Title : heading.Title + ": " + rule.Title;
+		return heading.Rules.All(r => r.ModId == rule.ModId) ? title : title + " (" + rule.ModName + ")";
+	}
 
-	private static void Subscribe(ILobbyRule rule) {
+	/// <summary>A rule's title in its heading's window (the window's title names the heading).</summary>
+	internal static string WindowLabel(ILobbyRule rule, LobbyGroup heading) =>
+		heading.Rules.All(r => r.ModId == rule.ModId) ? rule.Title : rule.Title + " (" + rule.ModName + ")";
+
+	internal static void Subscribe(ILobbyRule rule) {
 		// each rule keeps one subscription for the life of the game, even when the block is rebuilt
 		if (!Subscribed.Add(rule)) return;
 		switch (rule) {
@@ -136,7 +153,7 @@ internal static class LobbyRulesScreen {
 		Core.Match.Ended += Refresh;
 	}
 
-	private static void Refresh() {
+	internal static void Refresh() {
 		if (_refreshing) return;
 		_refreshing = true;
 		try {
@@ -146,5 +163,6 @@ internal static class LobbyRulesScreen {
 			}
 		}
 		finally { _refreshing = false; }
+		GroupWindow.Refresh();
 	}
 }
