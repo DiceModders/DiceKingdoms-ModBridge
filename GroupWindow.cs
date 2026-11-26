@@ -6,6 +6,7 @@ using DiceModders.ModCore;
 using DiceModders.UiKit;
 using DiceModders.UiKit.Custom;
 using UnityEngine;
+using Core = DiceModders.ModCore.ModCore;   // the class and its namespace share a name
 
 namespace DiceModders.ModBridge;
 
@@ -26,7 +27,10 @@ internal static class GroupWindow {
 	private static readonly List<Action> Refreshers = new();
 	private static bool _refreshing;
 
-	internal static void Install(UiScope scope) => _scope = scope;
+	internal static void Install(UiScope scope) {
+		_scope = scope;
+		Core.Match.Started += Close;   // the rules are fixed for the match from here: the window would show values nobody can change
+	}
 
 	internal static void Toggle(LobbyGroup heading) {
 		if (heading == null) return;
@@ -40,6 +44,7 @@ internal static class GroupWindow {
 	private static void Open(LobbyGroup heading) {
 		var rules = LobbyRulesScreen.Others(heading.Rules.Where(LobbyRulesScreen.CanShow).ToList());
 		if (rules.Count == 0 || _scope == null) return;
+		Refreshers.Clear();   // a window whose build failed never ran OnClose: its rows must not stay
 		_key = heading.Key;
 		_win = _scope.Custom.Window(w => {
 			w.Title(heading.Title).Size(560f, Mathf.Min(780f, 150f + rules.Count * 78f)).Position(120f, 60f).Draggable().Closable();
@@ -55,6 +60,7 @@ internal static class GroupWindow {
 				foreach (var rule in rules) Add(c, rule, LobbyRulesScreen.WindowLabel(rule, heading));
 			})?.FillWidth().FillHeight();
 		});
+		if (_win == null) { _key = null; Refreshers.Clear(); return; }
 		Refresh();
 	}
 
